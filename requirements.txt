@@ -1,0 +1,4 @@
+sanic==22.6.2
+SQLAlchemy==1.4.40
+alembic==1.8.1
+uvloop==0.16.0
