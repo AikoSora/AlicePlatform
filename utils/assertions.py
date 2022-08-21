@@ -1,29 +1,21 @@
 # Assertions file, write functions and add in main.py
 
-def settingsCheck(settings):
+def settings_check(settings):
 	"""Functions for check settings"""
 	
-	errorMessage = "[Settings] \"%s\" not be empty!"
+	error_message = "[Settings] \"%s\" not be empty!"
 
-	assert settings.secretKey, errorMessage % "secretKey"
-	assert settings.host, errorMessage % "host"
-	assert settings.port, errorMessage % "port"
-	assert settings.appName, errorMessage % "appName"
+	assert settings.SECRET_KEY, error_message % "secretKey"
+	assert settings.HOST, error_message % "host"
+	assert settings.PORT, error_message % "port"
+	assert settings.APP_NAME, error_message % "appName"
 
-
-def requestCheck(request):
+def request_check(request):
 	"""Function for check request"""
 
-	keys = request.keys()
+	booling_array = [key in request for key in ["request", "session", "version"]]
 
-	if not keys & {'request'}: return False
-	if not keys & {'session'}: return False
-	if not keys & {'version'}: return False
+	if all(booling_array):
+		booling_array.append([key in request['request'] for key in ["original_utterance", "command"]])
 
-	keys = request['request'].keys()
-
-	if not keys & {'original_utterance'}: return False
-	if not keys & {'command'}: return False
-
-	return True
-	
+	return all(booling_array)

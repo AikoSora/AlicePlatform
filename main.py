@@ -1,22 +1,24 @@
 import settings
 
 from utils import assertions
-from os import system as SystemCommand
-from bot.app import AliceSkill
+from os import system as system_command
+from bot.app import Application
 
 
 def main():
-	# It's funny ^_^
-	SystemCommand("clear")
+    """Function for start application"""
+    
+    # It's funny ^_^
+    system_command("clear")
 
-	# Assertions | add your assertion own here
-	assertions.settingsCheck(settings)
+    # Assertions | add your assertion own here
+    assertions.settings_check(settings)
 
-	# End Assertions
+    # End Assertions
 
-	# Start app
-	AliceSkill().start(settings)
+    # Start app
+    Application()
 
 
 if __name__ == "__main__":
-	main()
+    main()

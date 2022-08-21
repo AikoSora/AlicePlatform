@@ -1,48 +1,63 @@
-import uvloop
+import asyncio
 import importlib
+import settings
 
 from sanic import Sanic
 from pathlib import Path
+from typing import Optional
+
 from . import handler
-from .handlers.messageHandler import AliceView
+from .handlers.view import AliceView
 from database.engine.middleware import Database
 
 
-class AliceSkill:
+class Application:
 
-	def __init__(self):
-		uvloop.install()
+    __sanic_app: Optional[Sanic] = None
 
+    def __init__(self):
+        """Function for start application"""
 
-	def start(self, settings):
-		"""Function for start alice skill"""
+        self.__read_handlers()  # Load all commands for alice skill
+        self.__init_sanic()
 
-		# Load all commands for alice skill
-		self.read_handlers()
+    def __init_sanic(self):
+        """Function for initialize Sanic"""
 
-		# Sanic settings
-		app = Sanic(settings.appName)
-		app.config.FORWARDED_SECRET = settings.secretKey
+        # Sanic settings
+        self.__sanic_app = Sanic(settings.APP_NAME)
+        self.__sanic_app.config.FORWARDED_SECRET = settings.SECRET_KEY
 
-		# Database init
-		Database(app)
+        @self.__sanic_app.middleware('request')
+        async def _(request):
+            setattr(request.ctx, "commands", handler.commands)
 
-		# Handlers | add your handler own here
-		setattr(AliceView, "commands", handler.commands)
-		app.add_route(AliceView.as_view(), f"/{settings.url}")
+        @self.__sanic_app.listener("before_server_start")
+        async def _(app: Sanic, loop):
+            Database(app)
 
-		# End handlers
+        # Handlers | add your handler own here
 
-		# Start sanic app
-		app.run(host=settings.host, port=settings.port, debug=settings.debug)
+        self.__sanic_app.add_route(AliceView.as_view(), f"/{settings.URL}")
 
+        # End handlers
 
-	def read_handlers(self):
-		"""Function for load skill commands"""
+        self.__sanic_app.run(
+            host=settings.HOST,
+            port=settings.PORT,
+            debug=settings.DEBUG
+        )
 
-		path = Path(__file__).resolve().parent.joinpath("commands/")
+    def __read_handlers(self):
+        """Function for load skill commands"""
 
-		for command in path.rglob('**/*.py'):
-			spec = importlib.util.spec_from_file_location(command.name, command)
-			module = importlib.util.module_from_spec(spec)
-			spec.loader.exec_module(module)
+        path = Path(__file__).resolve().parent.joinpath("commands/")
+
+        for command in path.rglob('**/*.py'):
+
+            spec = importlib.util.spec_from_file_location(
+                command.name, command
+            )
+
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)

@@ -1,1 +1,1 @@
-from bot.assets.BaseRequests import Command
+from bot.assets.base_requests import Command
